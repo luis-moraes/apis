@@ -3,6 +3,7 @@ package br.edu.devmedia.orm;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import br.edu.devmedia.domain.Lembrete;
@@ -11,9 +12,11 @@ import br.edu.devmedia.exception.ApiException;
 public class LembreteMapper {
 
 	public Lembrete select(Lembrete lembrete) throws ApiException {
+		Connection conexao = null;
+		PreparedStatement statement = null;
 		try {
-			Connection conexao = Database.getConnection();
-			PreparedStatement statement = conexao.prepareStatement(
+			 conexao = Database.getConnection();
+			 statement = conexao.prepareStatement(
 					"SELECT * FROM lembrete WHERE IDLembrete = ?");
 			statement.setInt(1, lembrete.getId());
 			ResultSet rs = statement.executeQuery();
@@ -28,15 +31,29 @@ public class LembreteMapper {
 			}
 		} catch (Exception e) {
 			throw new ApiException(500, e.getMessage());
+		}finally {
+			try {
+				if(statement!=null){
+					statement.close();
+				}
+				if(conexao!=null&&!conexao.isClosed()){
+					conexao.close();
+				}
+				
+			} catch (SQLException e) {
+				throw new ApiException(500, e.getMessage());
+			}
 		}
 
 		return lembrete;
 	}
 
 	public Lembrete insert(Lembrete lembrete) throws ApiException {
+		Connection conexao = null;
+		PreparedStatement statement = null;
 		try {
-			Connection conexao = Database.getConnection();
-			PreparedStatement statement = conexao.prepareStatement(
+			conexao = Database.getConnection();
+			statement = conexao.prepareStatement(
 					"INSERT INTO lembrete(StTitulo, TxDescricao) VALUES(?, ?)", 
 					Statement.RETURN_GENERATED_KEYS);
 			statement.setString(1, lembrete.getTitulo());
@@ -49,6 +66,18 @@ public class LembreteMapper {
 			}
 		} catch (Exception e) {
 			throw new ApiException(500, e.getMessage());
+		} finally {
+			try {
+				if(statement!=null){
+					statement.close();
+				}
+				if(conexao!=null&&!conexao.isClosed()){
+					conexao.close();
+				}
+				
+			} catch (SQLException e) {
+				throw new ApiException(500, e.getMessage());
+			}
 		}
 
 		return this.select(lembrete);
